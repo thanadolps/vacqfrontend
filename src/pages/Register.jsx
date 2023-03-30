@@ -1,14 +1,35 @@
-import { useState } from "react";
+import React from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaUser } from "react-icons/fa";
+import { useSelector, useDispatch } from "react-redux";
+import { register, reset } from "../features/auth/authSlice";
 function Register() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     password2: "",
+    role: "user",
   });
-  const { name, email, password, password2 } = formData;
+  const { name, email, password, password2, role } = formData;
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user, isLoading, isError, isSuccess, message } = useSelector(
+    (state) => {
+      return state.auth;
+    }
+  );
+  useEffect(() => {
+    if (isError) {
+      toast.error(message);
+    }
+    //redirect when logged in
+    if (isSuccess || user) {
+      navigate("/");
+    }
+  }, [isError, isSuccess, user, message, navigate, dispatch]);
   const onChange = (e) => {
     setFormData((prevState) => ({
       ...prevState,
@@ -19,6 +40,14 @@ function Register() {
     e.preventDefault();
     if (password !== password2) {
       toast.error("Passwords do not match");
+    } else {
+      const userData = {
+        name,
+        email,
+        password,
+        role,
+      };
+      dispatch(register(userData));
     }
   };
   return (
@@ -58,8 +87,7 @@ function Register() {
           <div className="form-group">
             <input
               type="password"
-              className="form-
-control"
+              className="form-control"
               id="password"
               name="password"
               value={password}
@@ -71,8 +99,7 @@ control"
           <div className="form-group">
             <input
               type="password"
-              className="form-
-control"
+              className="form-control"
               id="password2"
               name="password2"
               value={password2}
@@ -82,12 +109,19 @@ control"
             />
           </div>
           <div className="form-group">
-            <button
-              className="btn btn-
-block"
-            >
-              Submit
-            </button>
+            <input
+              type="text"
+              className="form-control"
+              id="role"
+              name="role"
+              value={role}
+              onChange={onChange}
+              placeholder="Enter Your Role"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <button className="btn btn-block">Submit</button>
           </div>
         </form>
       </section>
